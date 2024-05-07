@@ -1,4 +1,4 @@
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css"
 const tempMovieData = [
   {
@@ -47,7 +47,7 @@ const tempWatchedData = [
   },
 ];
 
-const KEY="f84fc31d";
+const KEY = "f84fc31d";
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 // Main Component
@@ -55,23 +55,29 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error,setError]=useState("")
+  const [error, setError] = useState("")
   // useEffect(function (){
   //   fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`).then((res)=>res.json()).then((data)=>setMovies(data.Search))
   // },[])
-  
-  useEffect(function(){
-    async function movieGet(){
-      setIsLoading(true)
-      const res =await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`);
-      const data =await res.json();
-     setMovies(data.Search);
-     setIsLoading(false)
 
-   }
-   movieGet()
-  },[])
-  
+  useEffect(function () {
+    async function movieGet() {
+      try {
+        setIsLoading(true)
+        const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`);
+        if (!res.ok) throw new Error("Something went wrong with fetching movies ")
+        const data = await res.json();
+        setMovies(data.Search);
+        if(data.Response === "False") throw new error("Movie not found")
+          console.log(data);
+      } catch (error) {
+        setError(error.message)
+      } finally { }
+      setIsLoading(false)
+    }
+    movieGet()
+  }, [])
+
   return (
     <>
       <NavBar >
@@ -80,8 +86,13 @@ export default function App() {
       </NavBar>
       <Main  >
         {/* passing children  */}
-        <Box >
+        {/* <Box >
          { isLoading ? <Loading/> :  <MovieLists movie={movies} />}
+        </Box> */}
+        <Box >
+          {isLoading && <Loading />}
+          {!isLoading && !error && <MovieLists movie={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
         <Box>
           <Summary watched={watched} />
@@ -99,9 +110,11 @@ export default function App() {
   );
 }
 
-function Loading()
-{
+function Loading() {
   return <p>Loading...</p>
+}
+function ErrorMessage({ message }) {
+  return <p>{message}</p>
 }
 // NavBarComponent
 function NavBar({ children }) {
@@ -134,7 +147,7 @@ function Search() {
 // NumResults component
 function NumResults({ movie }) {
   return <p className="num-results">
-    {/* Found <strong>{movie.length}</strong> results */}
+    Found <strong>{movie.length}</strong> results
   </p>
 }
 // Main Component
