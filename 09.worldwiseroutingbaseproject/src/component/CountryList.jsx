@@ -12,7 +12,6 @@ function CountryList({ cities, isLoading }) {
         else return arr
     },[])
     return (
-
         <ul className={styles.cityList}>
             {countries.map((data) => <CountryItem country={data} key={data.id} />)}
         </ul>
